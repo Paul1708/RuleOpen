@@ -1,0 +1,57 @@
+name: Build and Test
+
+on:
+  push:
+    branches: [ main ]
+    tags: [ 'v*' ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build-and-test:
+    runs-on: windows-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 10 SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Setup MSBuild (Visual Studio)
+        uses: microsoft/setup-msbuild@v2
+
+      - name: Build native Explorer context menu extension (C++20)
+        run: msbuild src\RuleOpen.ShellExtension\RuleOpen.ShellExtension.vcxproj /p:Configuration=Release /p:Platform=x64 /m
+
+      - name: Restore and build solution
+        run: dotnet build RuleOpen.sln -c Release -p:Platform=x64
+
+      - name: Run core unit tests
+        run: dotnet test tests\RuleOpen.Core.Tests\RuleOpen.Core.Tests.csproj -c Release --no-build --verbosity normal
+
+      - name: Run Windows integration tests
+        run: dotnet test tests\RuleOpen.Integration.Tests\RuleOpen.Integration.Tests.csproj -c Release -p:Platform=x64 --no-build --verbosity normal
+
+      - name: Package release installer and portable archive
+        run: powershell -ExecutionPolicy Bypass -File scripts\package-release.ps1 -Version "1.0.0"
+
+      - name: Upload release artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: RuleOpen-win-x64
+          path: artifacts/release/*
+
+      - name: Publish GitHub Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+          files: |
+            artifacts/release/RuleOpen-*-win-x64.msi
+            artifacts/release/RuleOpen-*-win-x64-portable.zip

@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 240" width="960" height="240" fill="none">
+  <defs>
+    <linearGradient id="bannerBg" x1="0" y1="0" x2="960" y2="240" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#F6F9FD" />
+      <stop offset="100%" stop-color="#EBF2FA" />
+    </linearGradient>
+    <linearGradient id="docBg" x1="94" y1="42" x2="182" y2="194" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#FFFFFF" />
+      <stop offset="100%" stop-color="#E5ECF5" />
+    </linearGradient>
+    <linearGradient id="docFold" x1="154" y1="42" x2="186" y2="74" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#D4DFEC" />
+      <stop offset="100%" stop-color="#BAC9DC" />
+    </linearGradient>
+    <linearGradient id="routePrimary" x1="120" y1="134" x2="240" y2="152" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#2899F5" />
+      <stop offset="100%" stop-color="#0067C0" />
+    </linearGradient>
+    <linearGradient id="targetTile" x1="198" y1="126" x2="248" y2="176" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#38A8FF" />
+      <stop offset="100%" stop-color="#005FB8" />
+    </linearGradient>
+    <linearGradient id="secondaryTile" x1="204" y1="62" x2="238" y2="96" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#C8E3FA" />
+      <stop offset="100%" stop-color="#8BC4F5" />
+    </linearGradient>
+  </defs>
+
+  <rect width="960" height="240" rx="20" fill="url(#bannerBg)" stroke="#D6E2F0" stroke-width="2" />
+
+  <!-- Icon Mark -->
+  <path d="M108 42 H154 L186 74 V180 C186 188.837 178.837 196 170 196 H108 C99.163 196 92 188.837 92 180 V58 C92 49.163 99.163 42 108 42 Z"
+        fill="url(#docBg)" stroke="#9FB0C4" stroke-width="2.5" />
+  <path d="M154 42 V62 C154 68.627 159.373 74 166 74 H186 L154 42 Z" fill="url(#docFold)" />
+  <rect x="108" y="69" width="32" height="8" rx="4" fill="#B8C7D9" />
+  <rect x="108" y="86" width="48" height="8" rx="4" fill="#CBD7E6" />
+  <path d="M152 134 C172 134 172 79 195 79 H205" stroke="#7EC0F5" stroke-width="8.5" stroke-linecap="round" />
+  <rect x="204" y="62" width="34" height="34" rx="9" fill="url(#secondaryTile)" stroke="#62B0EF" stroke-width="2" />
+  <circle cx="123" cy="134" r="14" fill="#FFFFFF" />
+  <path d="M123 134 H161 C175 134 178 151 193 151 H202" stroke="url(#routePrimary)" stroke-width="12" stroke-linecap="round" />
+  <circle cx="123" cy="134" r="10" fill="#0078D4" />
+  <rect x="198" y="126" width="50" height="50" rx="13" fill="url(#targetTile)" />
+  <path d="M217 140 L231 151 L217 162" stroke="#FFFFFF" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" />
+
+  <!-- Typography -->
+  <text x="292" y="114" font-family="'Segoe UI Variable Display', 'Segoe UI', sans-serif" font-size="56" font-weight="600" fill="#1A2433" letter-spacing="-0.8">RuleOpen</text>
+  <text x="294" y="154" font-family="'Segoe UI Variable Text', 'Segoe UI', sans-serif" font-size="22" font-weight="400" fill="#4B5B70">Context-aware file opening rules for Windows 11</text>
+  <text x="294" y="185" font-family="'Segoe UI Variable Text', 'Segoe UI', sans-serif" font-size="15" font-weight="500" fill="#0067C0">Configure once. Open naturally.</text>
+</svg>

@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows10.0.26100.0</TargetFramework>
+    <SupportedOSPlatformVersion>10.0.19041.0</SupportedOSPlatformVersion>
+    <Platforms>x64;AnyCPU</Platforms>
+    <RootNamespace>RuleOpen.Dispatcher</RootNamespace>
+    <AssemblyName>RuleOpen.Dispatcher</AssemblyName>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>..\RuleOpen.Desktop\Assets\RuleOpen.ico</ApplicationIcon>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\RuleOpen.Core\RuleOpen.Core.csproj" />
+    <ProjectReference Include="..\RuleOpen.Windows\RuleOpen.Windows.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="RuleOpen.Integration.Tests" />
+  </ItemGroup>
+</Project>

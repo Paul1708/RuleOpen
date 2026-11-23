@@ -1,0 +1,16 @@
+<Project Sdk="WixToolset.Sdk/6.0.2">
+  <PropertyGroup>
+    <OutputType>Package</OutputType>
+    <Platform>x64</Platform>
+    <OutputName>RuleOpen-1.0.0-x64</OutputName>
+    <StageDir Condition="'$(StageDir)' == ''">$(MSBuildProjectDirectory)\..\..\artifacts\staging</StageDir>
+    <DefineConstants>StageDir=$(StageDir);ProductVersion=1.0.0.0</DefineConstants>
+    <!-- ICE03 triggers on Microsoft.WindowsAppSDK multi-LCID PE File.Language metadata; ICE61 is expected for AllowSameVersionUpgrades="yes"; ICE91 is expected for perUser LocalAppDataFolder installs; WIX1076 notes AllowSameVersionUpgrades semantics -->
+    <SuppressIces>ICE03;ICE61;ICE91</SuppressIces>
+    <NoWarn>$(NoWarn);WIX1076</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="WixToolset.UI.wixext" Version="6.0.2" />
+  </ItemGroup>
+</Project>
