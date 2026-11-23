@@ -114,6 +114,11 @@ dotnet publish $desktopProj `
     -o $stageDir
 if ($LASTEXITCODE -ne 0) { throw "RuleOpen.Desktop publish failed." }
 
+$publishedPri = Join-Path $stageDir "RuleOpen.Desktop.pri"
+if (-not (Test-Path $publishedPri) -or (Get-Item $publishedPri).Length -lt 500000) {
+    throw "RuleOpen.Desktop.pri is missing or incomplete ($publishedPri); Windows App SDK resources were not merged."
+}
+
 $dispatcherProj = Join-Path $root "src\RuleOpen.Dispatcher\RuleOpen.Dispatcher.csproj"
 dotnet publish $dispatcherProj `
     -c $Configuration `
