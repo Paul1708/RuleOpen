@@ -375,7 +375,7 @@ public sealed class SettingsViewModel(
     public void RegisterCommonExtensions()
     {
         RuleOpenConfig config = configurationStore.Load();
-        IReadOnlyList<string> curated = [".pdf", ".md", ".markdown", ".txt", ".json", ".csv"];
+        string[] curated = [".pdf", ".md", ".markdown", ".txt", ".json", ".csv"];
         fileAssociationService.RegisterExtensions(curated, config);
         configurationStore.Save(config);
         AssociationFeedback = "Registered common document extensions (.pdf, .md, .markdown, .txt, .json, .csv).";
@@ -451,7 +451,7 @@ public sealed class SettingsViewModel(
 
         RuleOpenConfig config = configurationStore.Load();
         config.ExtensionFallbacks[normExt] = target.Clone();
-        fileAssociationService.RefreshExtensionIcons([normExt], config);
+        fileAssociationService.RefreshExtensionIcons(new[] { normExt }, config);
         configurationStore.Save(config);
 
         RefreshExtensionsList(config);
@@ -477,7 +477,7 @@ public sealed class SettingsViewModel(
         }
 
         config.ExtensionFallbacks[normExt] = detected;
-        fileAssociationService.RefreshExtensionIcons([normExt], config);
+        fileAssociationService.RefreshExtensionIcons(new[] { normExt }, config);
         configurationStore.Save(config);
 
         RefreshExtensionsList(config);
@@ -498,7 +498,7 @@ public sealed class SettingsViewModel(
             return;
         }
 
-        fileAssociationService.RefreshExtensionIcons([normExt], config);
+        fileAssociationService.RefreshExtensionIcons(new[] { normExt }, config);
         configurationStore.Save(config);
 
         RefreshExtensionsList(config);

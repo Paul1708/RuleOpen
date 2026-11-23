@@ -12,6 +12,7 @@ public sealed class AppPickerViewModel(
     IApplicationDiscoveryService discoveryService,
     IconCacheService iconCache) : ObservableObject
 {
+    private static readonly string[] GlobalFallbackSampleExtensions = [".pdf", ".txt", ".html", ".png"];
     private readonly List<ApplicationChoiceViewModel> _allChoices = [];
     private string _dialogTitle = "Choose an application";
     private string _subtitle = "Select a registered Windows application or browse for an executable.";
@@ -105,7 +106,7 @@ public sealed class AppPickerViewModel(
         DialogTitle = $"Choose fallback app for {extension}";
         Subtitle = $"Used when no rule matches {extension} files, and for its Explorer icon when inheriting fallback icons.";
         await InitializeSelectionAsync(current, extension);
-        await LoadHandlersAsync([extension]);
+        await LoadHandlersAsync(new[] { extension });
     }
 
     public async Task InitializeForGlobalFallbackAsync(ApplicationTarget? current)
@@ -113,7 +114,7 @@ public sealed class AppPickerViewModel(
         DialogTitle = "Choose global fallback app";
         Subtitle = "Used when no folder rule and no per-extension fallback matches.";
         await InitializeSelectionAsync(current, null);
-        await LoadHandlersAsync([".pdf", ".txt", ".html", ".png"]);
+        await LoadHandlersAsync(GlobalFallbackSampleExtensions);
     }
 
     public void SelectChoice(ApplicationChoiceViewModel choice)

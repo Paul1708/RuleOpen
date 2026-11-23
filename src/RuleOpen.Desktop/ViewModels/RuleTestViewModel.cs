@@ -240,7 +240,7 @@ public sealed class RuleTestViewModel(
         }
 
         IReadOnlyList<FileAssociationStatus> statuses = fileAssociationService
-            .GetStatusForExtensions([eval.NormalizedExtension], config);
+            .GetStatusForExtensions(new[] { eval.NormalizedExtension }, config);
         FileAssociationStatus? status = statuses.Count > 0 ? statuses[0] : null;
 
         if (status is null)
