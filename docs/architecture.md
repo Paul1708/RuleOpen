@@ -6,9 +6,9 @@
 Ship **RuleOpen** via **two complementary distribution formats** built from one codebase:
 
 1. **Microsoft Store Full MSIX (`PaulBrinkmann.RuleOpen`, `AppxManifest.Store.xml`)**:
-   - Signed automatically by the Microsoft Store with trusted identity (`CN=1C346476-CE87-4371-A043-7D1DFD06F837`), registering the **Windows 11 modern context menu** out of the box with zero Developer Mode setup.
-   - Disables container virtualization (`<rescap:Capability Name="unvirtualizedResources" />`, `<desktop6:RegistryWriteVirtualization>disabled</desktop6:RegistryWriteVirtualization>`, `<desktop6:FileSystemWriteVirtualization>disabled</desktop6:FileSystemWriteVirtualization>`) so runtime `HKCU\Software\RegisteredApplications` registrations and `%LocalAppData%\RuleOpen\` icon routes are immediately visible to Windows Explorer.
-   - Declares two entry points inside the package: `RuleOpen.Desktop.exe` (main WinUI 3 UI) and `RuleOpen.Dispatcher.exe` (`AppListEntry="none"` + `uap5:AppExecutionAlias` so `shell\open\command` remains valid across Store updates).
+   - Uses only `runFullTrust` (no `unvirtualizedResources` restricted capability required), signed automatically by the Microsoft Store with trusted identity (`CN=1C346476-CE87-4371-A043-7D1DFD06F837`), registering the **Windows 11 modern context menu** out of the box with zero Developer Mode setup.
+   - Declaratively registers 77 common file extensions via `<uap:Extension Category="windows.fileTypeAssociation" Executable="RuleOpen.Dispatcher.exe">` (`uap3:FileTypeAssociation` + `<desktop10:IconHandler Clsid="7B42A9F1-4D8E-4E2A-B8E1-9E44C3B10110" />`), pointing double-click activations directly to the lightweight dispatcher and reading icon routes from the package's unvirtualized `LocalState` folder (`ApplicationData.Current.LocalFolder`).
+   - Deep-links directly to `ms-settings:defaultapps?registeredAppPackage=<FamilyName>` and exposes `RuleOpen.Dispatcher.exe` via `<uap5:AppExecutionAlias>`.
 
 2. **GitHub Releases Unpackaged Desktop Build (WiX v6 per-user `.msi` & portable `.zip` + Sparse MSIX `RuleOpen.ShellPackage.msix`)**:
    - Dedicated lightweight **zero-WinUI dispatcher executable** (`RuleOpen.Dispatcher.exe`) installed alongside `RuleOpen.Desktop.exe` under `%LocalAppData%\Programs\RuleOpen\`.

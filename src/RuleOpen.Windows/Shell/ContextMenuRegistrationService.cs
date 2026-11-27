@@ -4,6 +4,7 @@ using RuleOpen.Core.Models;
 using RuleOpen.Windows.Associations;
 using Windows.ApplicationModel;
 using Windows.Management.Deployment;
+using Windows.Storage;
 
 namespace RuleOpen.Windows.Shell;
 
@@ -28,6 +29,40 @@ public sealed class ContextMenuRegistrationService : IContextMenuService
         catch
         {
             return false;
+        }
+    }
+
+    public static string? TryGetStorePackageFamilyName()
+    {
+        if (!IsRunningAsStorePackage())
+        {
+            return null;
+        }
+
+        try
+        {
+            return Package.Current.Id.FamilyName;
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    public static string? TryGetStoreLocalFolderPath()
+    {
+        if (!IsRunningAsStorePackage())
+        {
+            return null;
+        }
+
+        try
+        {
+            return ApplicationData.Current.LocalFolder.Path;
+        }
+        catch
+        {
+            return null;
         }
     }
 

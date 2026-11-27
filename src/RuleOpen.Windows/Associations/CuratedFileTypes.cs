@@ -48,6 +48,21 @@ public static class CuratedFileTypes
         ".html", ".png", ".jpg", ".svg", ".docx", ".xlsx", ".mp4", ".zip"
     ];
 
+    /// <summary>
+    /// Extensions declaratively registered in <c>AppxManifest.Store.xml</c> for Microsoft Store installs.
+    /// </summary>
+    public static IReadOnlyList<string> StoreDeclaredExtensions { get; } =
+    [
+        ".pdf", ".md", ".markdown", ".txt", ".rtf", ".doc", ".docx", ".odt",
+        ".xls", ".xlsx", ".csv", ".ods", ".ppt", ".pptx", ".odp",
+        ".json", ".xml", ".yaml", ".yml", ".toml", ".ini", ".cfg", ".conf", ".log",
+        ".html", ".htm", ".css", ".js", ".ts", ".jsx", ".tsx", ".cs", ".py",
+        ".cpp", ".c", ".h", ".hpp", ".rs", ".go", ".java", ".kt", ".ps1", ".sh", ".sql",
+        ".png", ".jpg", ".jpeg", ".webp", ".gif", ".bmp", ".svg", ".tif", ".tiff", ".avif", ".ico",
+        ".mp4", ".mkv", ".mov", ".avi", ".webm", ".mp3", ".wav", ".flac", ".ogg", ".m4a", ".aac",
+        ".zip", ".7z", ".rar", ".tar", ".gz", ".epub", ".tex", ".rst", ".org", ".ics", ".eml"
+    ];
+
     public static string GetFriendlyName(string extension)
     {
         if (!ExtensionNormalizer.TryNormalize(extension, out string norm))

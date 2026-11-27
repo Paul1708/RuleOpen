@@ -131,6 +131,12 @@ namespace
         return true;
     }
 
+    bool FileExistsPath(const std::wstring& path)
+    {
+        DWORD attrs = GetFileAttributesW(path.c_str());
+        return attrs != INVALID_FILE_ATTRIBUTES && (attrs & FILE_ATTRIBUTE_DIRECTORY) == 0;
+    }
+
     std::wstring ResolveRoutesFilePath()
     {
         wchar_t envBuf[MAX_PATH * 4]{};
@@ -151,9 +157,53 @@ namespace
         PWSTR localAppData = nullptr;
         if (SUCCEEDED(SHGetKnownFolderPath(FOLDERID_LocalAppData, 0, nullptr, &localAppData)) && localAppData)
         {
-            std::wstring result = std::wstring(localAppData) + L"\\RuleOpen\\icon-routes.tsv";
+            std::wstring baseLocal(localAppData);
             CoTaskMemFree(localAppData);
-            return result;
+
+            std::wstring unpackagedPath = baseLocal + L"\\RuleOpen\\icon-routes.tsv";
+            if (FileExistsPath(unpackagedPath))
+            {
+                return unpackagedPath;
+            }
+
+            // When installed via Microsoft Store MSIX (without unvirtualizedResources),
+            // look up the package's unvirtualized LocalState or LocalCache folder.
+            std::wstring packagesDir = baseLocal + L"\\Packages\\";
+            std::wstring searchPattern = packagesDir + L"PaulBrinkmann.RuleOpen_*";
+            WIN32_FIND_DATAW findData{};
+            HANDLE hFind = FindFirstFileW(searchPattern.c_str(), &findData);
+            if (hFind != INVALID_HANDLE_VALUE)
+            {
+                std::wstring foundStorePath;
+                do
+                {
+                    if ((findData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) != 0)
+                    {
+                        std::wstring pkgRoot = packagesDir + findData.cFileName;
+                        std::wstring localStateCandidate = pkgRoot + L"\\LocalState\\icon-routes.tsv";
+                        if (FileExistsPath(localStateCandidate))
+                        {
+                            foundStorePath = std::move(localStateCandidate);
+                            break;
+                        }
+
+                        std::wstring localCacheCandidate = pkgRoot + L"\\LocalCache\\Local\\RuleOpen\\icon-routes.tsv";
+                        if (FileExistsPath(localCacheCandidate))
+                        {
+                            foundStorePath = std::move(localCacheCandidate);
+                            break;
+                        }
+                    }
+                } while (FindNextFileW(hFind, &findData));
+                FindClose(hFind);
+
+                if (!foundStorePath.empty())
+                {
+                    return foundStorePath;
+                }
+            }
+
+            return unpackagedPath;
         }
 
         return {};

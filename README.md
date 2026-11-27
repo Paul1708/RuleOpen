@@ -88,7 +88,7 @@ All normal file activations run through a lightweight, zero-WinUI dispatcher (`R
 
 ### Option 3: Microsoft Store (Coming Soon)
 - A signed Full MSIX Store release (`PaulBrinkmann.RuleOpen`) is currently pending Microsoft Store review.
-- Once published, installing directly from the Microsoft Store will automatically register the modern Windows 11 right-click menu with zero Developer Mode setup, while keeping dynamic `HKCU` file associations and routed Explorer icons active (`unvirtualizedResources`).
+- Once published, installing directly from the Microsoft Store will automatically register the modern Windows 11 right-click menu (`IExplorerCommand`), 70+ common file associations (`uap3:FileTypeAssociation`), and dynamic per-folder Explorer icons (`desktop10:IconHandler`) with zero Developer Mode setup.
 
 ---
 

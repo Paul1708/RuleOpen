@@ -123,6 +123,36 @@ public sealed class PerUserFileAssociationService : IFileAssociationService
 
         string dispatcherExe = ResolveDispatcherExecutablePath();
         string appIconPath = ResolveIconLocation(dispatcherExe);
+
+        if (ContextMenuRegistrationService.IsRunningAsStorePackage())
+        {
+            foreach (string ext in normalized)
+            {
+                if (!config.ExtensionFallbacks.ContainsKey(ext))
+                {
+                    ApplicationTarget? previousDefault = CaptureCurrentDefaultHandler(ext);
+                    if (previousDefault is not null)
+                    {
+                        config.ExtensionFallbacks[ext] = previousDefault;
+                    }
+                }
+
+                if (!config.Settings.RegisteredExtensions.Contains(ext, StringComparer.OrdinalIgnoreCase))
+                {
+                    config.Settings.RegisteredExtensions.Add(ext);
+                }
+            }
+
+            IEnumerable<string> storeTracked = CuratedFileTypes.StoreDeclaredExtensions
+                .Concat(config.Settings.RegisteredExtensions)
+                .Concat(config.Rules.SelectMany(r => r.Extensions))
+                .Concat(normalized);
+
+            SyncIconHandlerAndRoutes(config, storeTracked, appIconPath);
+            NotifyShellAssociationsChanged();
+            return;
+        }
+
         string openCommand = $"\"{dispatcherExe}\" -- \"%1\"";
 
         using (RegistryKey capKey = Registry.CurrentUser.CreateSubKey(CapabilitiesSubKey))
@@ -246,6 +276,38 @@ public sealed class PerUserFileAssociationService : IFileAssociationService
 
         if (extensions.Count == 0)
         {
+            return;
+        }
+
+        if (ContextMenuRegistrationService.IsRunningAsStorePackage())
+        {
+            string? storeLocalFolder = ContextMenuRegistrationService.TryGetStoreLocalFolderPath();
+            string routesPath = !string.IsNullOrWhiteSpace(storeLocalFolder)
+                ? Path.Combine(storeLocalFolder, "icon-routes.tsv")
+                : ConfigPaths.GetDefaultIconRoutesFilePath();
+
+            bool needsStoreSync = !File.Exists(routesPath);
+            if (!needsStoreSync)
+            {
+                try
+                {
+                    string text = File.ReadAllText(routesPath);
+                    if (text.Contains("ro_v2_", StringComparison.OrdinalIgnoreCase))
+                    {
+                        needsStoreSync = true;
+                    }
+                }
+                catch
+                {
+                    needsStoreSync = true;
+                }
+            }
+
+            if (needsStoreSync || extensions.Any(e => !config.ExtensionFallbacks.ContainsKey(e)))
+            {
+                RegisterExtensions(extensions, config);
+            }
+
             return;
         }
 
@@ -404,6 +466,21 @@ public sealed class PerUserFileAssociationService : IFileAssociationService
 
         string dispatcherExe = ResolveDispatcherExecutablePath();
         string appIconPath = ResolveIconLocation(dispatcherExe);
+
+        if (ContextMenuRegistrationService.IsRunningAsStorePackage())
+        {
+            IEnumerable<string> storeTracked = CuratedFileTypes.StoreDeclaredExtensions
+                .Concat(config.Settings.RegisteredExtensions)
+                .Concat(config.Rules.SelectMany(r => r.Extensions))
+                .Concat(normalized);
+
+            if (SyncIconHandlerAndRoutes(config, storeTracked, appIconPath))
+            {
+                NotifyShellAssociationsChanged();
+            }
+            return;
+        }
+
         bool updatedAny = false;
 
         foreach (string ext in normalized)
@@ -552,9 +629,14 @@ public sealed class PerUserFileAssociationService : IFileAssociationService
     {
         try
         {
+            string? storeFamilyName = ContextMenuRegistrationService.TryGetStorePackageFamilyName();
+            string uri = !string.IsNullOrWhiteSpace(storeFamilyName)
+                ? $"ms-settings:defaultapps?registeredAppPackage={Uri.EscapeDataString(storeFamilyName)}"
+                : $"ms-settings:defaultapps?registeredAppUser={Uri.EscapeDataString(RegisteredAppName)}";
+
             Process.Start(new ProcessStartInfo
             {
-                FileName = $"ms-settings:defaultapps?registeredAppUser={Uri.EscapeDataString(RegisteredAppName)}",
+                FileName = uri,
                 UseShellExecute = true
             });
         }
@@ -746,6 +828,12 @@ public sealed class PerUserFileAssociationService : IFileAssociationService
     {
         IReadOnlyList<string> normalized = ExtensionNormalizer.NormalizeMany(trackedExtensions);
 
+        if (ContextMenuRegistrationService.IsRunningAsStorePackage())
+        {
+            WriteIconRoutesTable(config, normalized, appIconPath, isStorePackage: true);
+            return true;
+        }
+
         if (config.Settings.ExplorerIconMode == ExplorerIconMode.MatchedRoutedAppIcon)
         {
             string shellDll = ResolveExecutablePath("RuleOpen.ShellExtension.dll");
@@ -760,7 +848,7 @@ public sealed class PerUserFileAssociationService : IFileAssociationService
                 inproc.SetValue("ThreadingModel", "Apartment", RegistryValueKind.String);
             }
 
-            WriteIconRoutesTable(config, normalized, appIconPath);
+            WriteIconRoutesTable(config, normalized, appIconPath, isStorePackage: false);
 
             foreach (string ext in normalized)
             {
@@ -840,50 +928,70 @@ public sealed class PerUserFileAssociationService : IFileAssociationService
     private static void WriteIconRoutesTable(
         RuleOpenConfig config,
         IReadOnlyList<string> trackedExtensions,
-        string appIconPath)
+        string appIconPath,
+        bool isStorePackage)
     {
-        List<RuleMatchCandidate> orderedRules = [];
-        foreach (OpeningRule rule in config.Rules)
-        {
-            if (!rule.Enabled || !PathNormalizer.TryNormalizeFolderPath(rule.FolderPath, out string normFolder))
-            {
-                continue;
-            }
-
-            orderedRules.Add(new RuleMatchCandidate
-            {
-                Rule = rule,
-                NormalizedRuleFolder = normFolder,
-                FolderDepth = PathNormalizer.GetFolderDepth(normFolder),
-                IsExactFolderMatch = !rule.IncludeSubfolders,
-                Matched = true,
-                Reason = "Icon route ordering"
-            });
-        }
-
-        orderedRules.Sort(new RulePrecedenceComparer(config.Settings.ConflictResolutionMode));
+        string? storeLocalFolder = isStorePackage ? ContextMenuRegistrationService.TryGetStoreLocalFolderPath() : null;
+        string? iconsDir = !string.IsNullOrWhiteSpace(storeLocalFolder)
+            ? Path.Combine(storeLocalFolder, "Icons")
+            : null;
 
         StringBuilder sb = new();
         HashSet<string> allExtensions = new(trackedExtensions, StringComparer.OrdinalIgnoreCase);
 
-        foreach (RuleMatchCandidate candidate in orderedRules)
+        if (config.Settings.ExplorerIconMode == ExplorerIconMode.MatchedRoutedAppIcon)
         {
-            string folderWithSlash = candidate.NormalizedRuleFolder.EndsWith('\\')
-                ? candidate.NormalizedRuleFolder
-                : candidate.NormalizedRuleFolder + "\\";
-            string subFlag = candidate.Rule.IncludeSubfolders ? "1" : "0";
-
-            foreach (string ext in ExtensionNormalizer.NormalizeMany(candidate.Rule.Extensions))
+            List<RuleMatchCandidate> orderedRules = [];
+            foreach (OpeningRule rule in config.Rules)
             {
-                allExtensions.Add(ext);
-                string fallbackBadge = ExtensionBadgeIconGenerator.EnsureExtensionIcon(ext) ?? appIconPath;
-                (string iconPath, int iconIndex) = ExtensionIconResolver.ResolveShellIconForTarget(
-                    ext,
-                    candidate.Rule.TargetApplication,
-                    fallbackBadge);
-                sb.AppendLine(
-                    CultureInfo.InvariantCulture,
-                    $"R\t{ext}\t{folderWithSlash}\t{subFlag}\t{SanitizeTsvField(iconPath)}\t{iconIndex}");
+                if (!rule.Enabled || !PathNormalizer.TryNormalizeFolderPath(rule.FolderPath, out string normFolder))
+                {
+                    continue;
+                }
+
+                orderedRules.Add(new RuleMatchCandidate
+                {
+                    Rule = rule,
+                    NormalizedRuleFolder = normFolder,
+                    FolderDepth = PathNormalizer.GetFolderDepth(normFolder),
+                    IsExactFolderMatch = !rule.IncludeSubfolders,
+                    Matched = true,
+                    Reason = "Icon route ordering"
+                });
+            }
+
+            orderedRules.Sort(new RulePrecedenceComparer(config.Settings.ConflictResolutionMode));
+
+            foreach (RuleMatchCandidate candidate in orderedRules)
+            {
+                string folderWithSlash = candidate.NormalizedRuleFolder.EndsWith('\\')
+                    ? candidate.NormalizedRuleFolder
+                    : candidate.NormalizedRuleFolder + "\\";
+                string subFlag = candidate.Rule.IncludeSubfolders ? "1" : "0";
+
+                foreach (string ext in ExtensionNormalizer.NormalizeMany(candidate.Rule.Extensions))
+                {
+                    allExtensions.Add(ext);
+                    string fallbackBadge = ExtensionBadgeIconGenerator.EnsureExtensionIcon(ext, iconsDir) ?? appIconPath;
+                    (string iconPath, int iconIndex) = ExtensionIconResolver.ResolveShellIconForTarget(
+                        ext,
+                        candidate.Rule.TargetApplication,
+                        fallbackBadge,
+                        iconsDir);
+                    sb.AppendLine(
+                        CultureInfo.InvariantCulture,
+                        $"R\t{ext}\t{folderWithSlash}\t{subFlag}\t{SanitizeTsvField(iconPath)}\t{iconIndex}");
+                }
+            }
+        }
+        else
+        {
+            foreach (OpeningRule rule in config.Rules)
+            {
+                foreach (string ext in ExtensionNormalizer.NormalizeMany(rule.Extensions))
+                {
+                    allExtensions.Add(ext);
+                }
             }
         }
 
@@ -897,24 +1005,46 @@ public sealed class PerUserFileAssociationService : IFileAssociationService
 
         foreach (string ext in allExtensions.OrderBy(e => e, StringComparer.OrdinalIgnoreCase))
         {
-            ApplicationTarget? fallback = config.ExtensionFallbacks.TryGetValue(ext, out ApplicationTarget? extFb)
-                ? extFb
-                : config.GlobalFallback;
-            string fallbackBadge = ExtensionBadgeIconGenerator.EnsureExtensionIcon(ext) ?? appIconPath;
-            (string iconPath, int iconIndex) = ExtensionIconResolver.ResolveShellIconForTarget(ext, fallback, fallbackBadge);
-            sb.AppendLine(
-                CultureInfo.InvariantCulture,
-                $"F\t{ext}\t{SanitizeTsvField(iconPath)}\t{iconIndex}");
+            string fallbackBadge = ExtensionBadgeIconGenerator.EnsureExtensionIcon(ext, iconsDir) ?? appIconPath;
+            if (config.Settings.ExplorerIconMode == ExplorerIconMode.RuleOpenExtensionBadges)
+            {
+                sb.AppendLine(
+                    CultureInfo.InvariantCulture,
+                    $"F\t{ext}\t{SanitizeTsvField(fallbackBadge)}\t0");
+            }
+            else
+            {
+                ApplicationTarget? fallback = config.ExtensionFallbacks.TryGetValue(ext, out ApplicationTarget? extFb)
+                    ? extFb
+                    : config.GlobalFallback;
+                (string iconPath, int iconIndex) = ExtensionIconResolver.ResolveShellIconForTarget(
+                    ext,
+                    fallback,
+                    fallbackBadge,
+                    iconsDir);
+                sb.AppendLine(
+                    CultureInfo.InvariantCulture,
+                    $"F\t{ext}\t{SanitizeTsvField(iconPath)}\t{iconIndex}");
+            }
         }
 
-        string routesPath = ConfigPaths.GetDefaultIconRoutesFilePath();
-        string dir = Path.GetDirectoryName(routesPath) ?? ".";
+        string content = sb.ToString();
+        WriteAtomicUtf8Text(ConfigPaths.GetDefaultIconRoutesFilePath(), content);
+        if (!string.IsNullOrWhiteSpace(storeLocalFolder))
+        {
+            WriteAtomicUtf8Text(Path.Combine(storeLocalFolder, "icon-routes.tsv"), content);
+        }
+    }
+
+    private static void WriteAtomicUtf8Text(string targetPath, string content)
+    {
+        string dir = Path.GetDirectoryName(targetPath) ?? ".";
         Directory.CreateDirectory(dir);
         string tempPath = Path.Combine(dir, $".icon-routes.tmp.{Environment.ProcessId}.{Environment.CurrentManagedThreadId}");
         try
         {
-            File.WriteAllText(tempPath, sb.ToString(), new UTF8Encoding(encoderShouldEmitUTF8Identifier: false));
-            File.Move(tempPath, routesPath, overwrite: true);
+            File.WriteAllText(tempPath, content, new UTF8Encoding(encoderShouldEmitUTF8Identifier: false));
+            File.Move(tempPath, targetPath, overwrite: true);
         }
         finally
         {
@@ -983,6 +1113,15 @@ public sealed class PerUserFileAssociationService : IFileAssociationService
     private static HashSet<string> ReadRegisteredExtensionsFromRegistry()
     {
         HashSet<string> set = new(StringComparer.OrdinalIgnoreCase);
+        if (ContextMenuRegistrationService.IsRunningAsStorePackage())
+        {
+            foreach (string ext in CuratedFileTypes.StoreDeclaredExtensions)
+            {
+                set.Add(ext);
+            }
+            return set;
+        }
+
         using RegistryKey? key = Registry.CurrentUser.OpenSubKey(FileAssociationsSubKey, writable: false);
         if (key is null)
         {
@@ -1056,8 +1195,15 @@ public sealed class PerUserFileAssociationService : IFileAssociationService
               ?? QueryAssocString(normalizedExtension, ASSOCSTR.ASSOCSTR_COMMAND)
             : QueryAssocString(normalizedExtension, ASSOCSTR.ASSOCSTR_COMMAND);
 
+        string? appId = !string.IsNullOrWhiteSpace(effectiveProgId)
+            ? QueryAssocString(effectiveProgId, ASSOCSTR.ASSOCSTR_APPID)
+              ?? QueryAssocString(normalizedExtension, ASSOCSTR.ASSOCSTR_APPID)
+            : QueryAssocString(normalizedExtension, ASSOCSTR.ASSOCSTR_APPID);
+
         bool isRuleOpen =
             IsRuleOpenProgId(effectiveProgId) ||
+            (!string.IsNullOrWhiteSpace(appId) &&
+             appId.StartsWith("PaulBrinkmann.RuleOpen_", StringComparison.OrdinalIgnoreCase)) ||
             (!string.IsNullOrWhiteSpace(command) &&
              command.Contains("RuleOpen.Dispatcher.exe", StringComparison.OrdinalIgnoreCase));
 

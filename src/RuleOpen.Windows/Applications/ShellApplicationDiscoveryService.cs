@@ -400,16 +400,18 @@ public sealed class ShellApplicationDiscoveryService : IApplicationDiscoveryServ
         }
 
         if (!string.IsNullOrWhiteSpace(aumid) &&
-            aumid.StartsWith("RuleOpen.", StringComparison.OrdinalIgnoreCase))
+            (aumid.StartsWith("RuleOpen.", StringComparison.OrdinalIgnoreCase) ||
+             aumid.StartsWith("PaulBrinkmann.RuleOpen_", StringComparison.OrdinalIgnoreCase)))
         {
             return true;
         }
 
-        foreach (string? candidate in new[] { name, executablePath })
+        foreach (string? candidate in new[] { name, progId, executablePath })
         {
             if (!string.IsNullOrWhiteSpace(candidate) &&
                 (candidate.Contains("RuleOpen.Dispatcher.exe", StringComparison.OrdinalIgnoreCase) ||
                  candidate.Contains("RuleOpen.Desktop.exe", StringComparison.OrdinalIgnoreCase) ||
+                 candidate.Contains("PaulBrinkmann.RuleOpen", StringComparison.OrdinalIgnoreCase) ||
                  Associations.PerUserFileAssociationService.IsRuleOpenProgId(candidate)))
             {
                 return true;
