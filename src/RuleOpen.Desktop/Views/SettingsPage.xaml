@@ -45,7 +45,7 @@
             <controls:SettingsExpander
                 Header="File Explorer context menu"
                 Description="Add 'RuleOpen' actions to the Windows 11 right-click menu"
-                IsExpanded="True">
+                IsExpanded="False">
                 <controls:SettingsExpander.HeaderIcon>
                     <FontIcon Glyph="&#xEC50;" />
                 </controls:SettingsExpander.HeaderIcon>
@@ -62,7 +62,8 @@
 
                     <controls:SettingsCard
                         Header="Classic per-user Explorer menu"
-                        Description="Registers 'RuleOpen' under Show more options (HKCU, useful for unsigned local builds)">
+                        Description="Registers 'RuleOpen' under Show more options (HKCU, useful for unsigned local builds)"
+                        Visibility="{x:Bind ViewModel.ShowClassicContextMenuOption, Mode=OneWay, Converter={StaticResource BoolToVisibility}}">
                         <ToggleSwitch
                             IsOn="{x:Bind ViewModel.ClassicContextMenuEnabled, Mode=TwoWay}"
                             OnContent="Enabled"

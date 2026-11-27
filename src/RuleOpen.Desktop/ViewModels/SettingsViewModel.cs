@@ -88,6 +88,7 @@ public sealed class SettingsViewModel(
     private string _modernContextMenuDetail = string.Empty;
     private bool _isModernContextMenuRegistered;
     private bool _canRegisterModernContextMenu;
+    private bool _showClassicContextMenuOption = true;
     private string _contextMenuFeedback = string.Empty;
     private InfoBarSeverity _contextMenuFeedbackSeverity = InfoBarSeverity.Informational;
     private bool _showDeveloperSettingsButton;
@@ -233,6 +234,12 @@ public sealed class SettingsViewModel(
         }
     }
 
+    public bool ShowClassicContextMenuOption
+    {
+        get => _showClassicContextMenuOption;
+        private set => SetProperty(ref _showClassicContextMenuOption, value);
+    }
+
     public bool IsBusyContextMenu
     {
         get => _isBusyContextMenu;
@@ -313,6 +320,7 @@ public sealed class SettingsViewModel(
             ContextMenuStatus cmStatus = contextMenuService.GetStatus();
             IsModernContextMenuRegistered = cmStatus.ModernState == ModernContextMenuState.Registered;
             CanRegisterModernContextMenu = cmStatus.CanRegisterModern;
+            ShowClassicContextMenuOption = !cmStatus.IsStoreManaged;
             ModernContextMenuDetail = cmStatus.ModernStatusDetail;
             ClassicContextMenuEnabled = cmStatus.IsClassicEnabled;
 

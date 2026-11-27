@@ -79,7 +79,8 @@ public sealed class ContextMenuRegistrationService : IContextMenuService
                 ModernState = ModernContextMenuState.Registered,
                 ModernStatusDetail = $"Active via Microsoft Store package (v{ver.Major}.{ver.Minor}.{ver.Build}). Appears directly on the Windows 11 right-click menu.",
                 IsClassicEnabled = classicEnabled,
-                CanRegisterModern = false
+                CanRegisterModern = false,
+                IsStoreManaged = true
             };
         }
 
@@ -98,7 +99,8 @@ public sealed class ContextMenuRegistrationService : IContextMenuService
                     ModernState = ModernContextMenuState.Registered,
                     ModernStatusDetail = $"Active via Microsoft Store package (v{ver.Major}.{ver.Minor}.{ver.Build}). Appears directly on the Windows 11 right-click menu.",
                     IsClassicEnabled = classicEnabled,
-                    CanRegisterModern = false
+                    CanRegisterModern = false,
+                    IsStoreManaged = true
                 };
             }
 

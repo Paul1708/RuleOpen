@@ -57,4 +57,5 @@ public sealed record ContextMenuStatus
     public required string ModernStatusDetail { get; init; }
     public bool IsClassicEnabled { get; init; }
     public bool CanRegisterModern { get; init; }
+    public bool IsStoreManaged { get; init; }
 }
