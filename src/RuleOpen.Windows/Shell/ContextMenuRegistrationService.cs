@@ -49,6 +49,12 @@ public sealed class ContextMenuRegistrationService : IContextMenuService
         }
     }
 
+    public static string? TryGetStoreApplicationUserModelId()
+    {
+        string? familyName = TryGetStorePackageFamilyName();
+        return string.IsNullOrWhiteSpace(familyName) ? null : $"{familyName}!RuleOpen.Desktop";
+    }
+
     public static string? TryGetStoreLocalFolderPath()
     {
         if (!IsRunningAsStorePackage())

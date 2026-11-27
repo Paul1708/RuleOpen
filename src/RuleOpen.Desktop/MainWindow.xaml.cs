@@ -60,22 +60,28 @@ public sealed partial class MainWindow : Window
         RuleOpenConfig config = _configurationStore.Load();
         _logger.IsEnabled = config.Settings.EnableDiagnosticLogging;
 
-        try
+        // Run association & icon-route reconciliation off the UI thread so first launch
+        // activates immediately (preventing Store MSIX activation timeouts while generating icons).
+        _ = Task.Run(() =>
         {
-            int regCountBefore = config.Settings.RegisteredExtensions.Count;
-            int fbCountBefore = config.ExtensionFallbacks.Count;
-            bool starterIfEmpty = config.Rules.Count == 0 && config.Settings.RegisteredExtensions.Count == 0;
-            _fileAssociationService.EnsureRegistered(config, registerStarterExtensionsIfEmpty: starterIfEmpty);
-            if (config.Settings.RegisteredExtensions.Count != regCountBefore ||
-                config.ExtensionFallbacks.Count != fbCountBefore)
+            try
             {
-                _configurationStore.Save(config);
+                RuleOpenConfig bgConfig = _configurationStore.Load();
+                int regCountBefore = bgConfig.Settings.RegisteredExtensions.Count;
+                int fbCountBefore = bgConfig.ExtensionFallbacks.Count;
+                bool starterIfEmpty = bgConfig.Rules.Count == 0 && bgConfig.Settings.RegisteredExtensions.Count == 0;
+                _fileAssociationService.EnsureRegistered(bgConfig, registerStarterExtensionsIfEmpty: starterIfEmpty);
+                if (bgConfig.Settings.RegisteredExtensions.Count != regCountBefore ||
+                    bgConfig.ExtensionFallbacks.Count != fbCountBefore)
+                {
+                    _configurationStore.Save(bgConfig);
+                }
             }
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning("Associations", $"Startup registration check skipped: {ex.Message}");
-        }
+            catch (Exception ex)
+            {
+                _logger.LogWarning("Associations", $"Startup registration check skipped: {ex.Message}");
+            }
+        });
 
         ThemePreference effectiveTheme = startupArgs.ThemeOverride ?? config.Settings.Theme;
         _themeService.AttachWindow(this, effectiveTheme);

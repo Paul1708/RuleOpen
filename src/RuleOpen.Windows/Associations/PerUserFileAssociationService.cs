@@ -629,9 +629,9 @@ public sealed class PerUserFileAssociationService : IFileAssociationService
     {
         try
         {
-            string? storeFamilyName = ContextMenuRegistrationService.TryGetStorePackageFamilyName();
-            string uri = !string.IsNullOrWhiteSpace(storeFamilyName)
-                ? $"ms-settings:defaultapps?registeredAppPackage={Uri.EscapeDataString(storeFamilyName)}"
+            string? storeAumid = ContextMenuRegistrationService.TryGetStoreApplicationUserModelId();
+            string uri = !string.IsNullOrWhiteSpace(storeAumid)
+                ? $"ms-settings:defaultapps?registeredAUMID={Uri.EscapeDataString(storeAumid)}"
                 : $"ms-settings:defaultapps?registeredAppUser={Uri.EscapeDataString(RegisteredAppName)}";
 
             Process.Start(new ProcessStartInfo
