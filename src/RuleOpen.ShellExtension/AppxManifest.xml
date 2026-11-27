@@ -16,7 +16,7 @@
     Name="RuleOpen.ShellExtension"
     ProcessorArchitecture="x64"
     Publisher="CN=1C346476-CE87-4371-A043-7D1DFD06F837"
-    Version="1.0.0.0" />
+    Version="1.0.1.0" />
 
   <Properties>
     <DisplayName>RuleOpen Explorer Integration</DisplayName>
