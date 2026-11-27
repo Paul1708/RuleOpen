@@ -23,7 +23,8 @@
                     <StackPanel Grid.Column="1" Spacing="4" VerticalAlignment="Center">
                         <TextBlock Text="RuleOpen" Style="{StaticResource SubtitleTextBlockStyle}" />
                         <TextBlock
-                            Text="Version 1.0.0  •  Windows 11 Native Utility"
+                            x:Name="VersionTextBlock"
+                            Text="Version 1.0.1  •  Windows 11 Native Utility"
                             Style="{StaticResource CaptionTextBlockStyle}"
                             Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
                         <TextBlock
@@ -34,6 +35,17 @@
                     </StackPanel>
                 </Grid>
             </Border>
+
+            <controls:SettingsCard
+                Header="Microsoft Store"
+                Description="https://apps.microsoft.com/detail/9NPTZJ83X1W9"
+                IsClickEnabled="True"
+                Click="StoreCard_Click">
+                <controls:SettingsCard.HeaderIcon>
+                    <FontIcon Glyph="&#xE719;" />
+                </controls:SettingsCard.HeaderIcon>
+                <FontIcon Glyph="&#xE8A7;" FontSize="14" />
+            </controls:SettingsCard>
 
             <controls:SettingsCard
                 Header="Source repository"

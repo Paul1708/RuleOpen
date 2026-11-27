@@ -39,7 +39,16 @@ jobs:
         run: dotnet test tests\RuleOpen.Integration.Tests\RuleOpen.Integration.Tests.csproj -c Release -p:Platform=x64 --no-build --verbosity normal
 
       - name: Package release installer and portable archive
-        run: powershell -ExecutionPolicy Bypass -File scripts\package-release.ps1 -Version "1.0.0"
+        shell: pwsh
+        run: |
+          if ($env:GITHUB_REF -like 'refs/tags/v*') {
+            $ver = $env:GITHUB_REF_NAME.TrimStart('v')
+          } else {
+            [xml]$props = Get-Content -LiteralPath Directory.Build.props -Raw
+            $ver = $props.Project.PropertyGroup[0].Version.Trim()
+          }
+          Write-Host "Packaging RuleOpen version $ver"
+          powershell -ExecutionPolicy Bypass -File scripts\package-release.ps1 -Version $ver
 
       - name: Upload release artifacts
         uses: actions/upload-artifact@v4

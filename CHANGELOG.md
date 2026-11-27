@@ -2,6 +2,15 @@
 
 All notable changes to **RuleOpen** will be documented in this file.
 
+## [1.0.1] - 2026-11-27
+
+### Changed
+- **Microsoft Store Release (`9NPTZJ83X1W9`)**: Published RuleOpen on the [Microsoft Store](https://apps.microsoft.com/detail/9NPTZJ83X1W9) using only `runFullTrust` (removed `unvirtualizedResources` and the separate headless `AppListEntry="none"` entry) with declarative `uap3:FileTypeAssociation` (77 common file types), `desktop10:IconHandler`, `desktop4:FileExplorerContextMenus`, and `uap5:AppExecutionAlias`.
+- **Direct Windows Default Apps Deep-Link**: In Store builds, **Open Default Apps** now opens `ms-settings:defaultapps?registeredAUMID=<FamilyName>!RuleOpen.Desktop` to jump straight to RuleOpen in Windows 11 Settings.
+- **Faster Store Startup**: Moved startup association/icon initialization off the UI thread to keep launch instantaneous.
+- **Settings & About Polish**: Collapsed the **File Explorer context menu** expander by default, hid the classic HKCU context menu toggle in Store builds, added a Microsoft Store link to **About**, and displayed the app version dynamically from assembly metadata.
+- **CI & Packaging**: Made the WiX installer and GitHub Actions release workflow resolve version numbers automatically from `Directory.Build.props` and Git release tags.
+
 ## [1.0.0] - 2026-11-23
 
 ### Added

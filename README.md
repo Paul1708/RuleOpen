@@ -8,11 +8,17 @@
   </p>
 
   <p>
+    <a href="https://apps.microsoft.com/detail/9NPTZJ83X1W9"><img src="https://img.shields.io/badge/Microsoft%20Store-Download-0078D4?logo=microsoftstore&logoColor=white" alt="Download from Microsoft Store" /></a>
     <img src="https://img.shields.io/badge/Windows-11%20(19041%2B)-0078D4?logo=windows11&logoColor=white" alt="Windows 11" />
     <img src="https://img.shields.io/badge/.NET-10%20LTS-512BD4?logo=dotnet&logoColor=white" alt=".NET 10 LTS" />
     <img src="https://img.shields.io/badge/UI-WinUI%203%20%7C%20Fluent%20Design-0067C0" alt="WinUI 3 Fluent Design" />
     <img src="https://img.shields.io/badge/Offline--First-Zero%20Telemetry-2EA44F" alt="Offline-First Zero Telemetry" />
     <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-green.svg" alt="MIT License" /></a>
+  </p>
+
+  <p>
+    <a href="https://apps.microsoft.com/detail/9NPTZJ83X1W9"><strong>Get RuleOpen on the Microsoft Store</strong></a> ·
+    <a href="https://github.com/Paul1708/RuleOpen/releases">GitHub Releases (MSI &amp; Portable ZIP)</a>
   </p>
 </div>
 
@@ -77,18 +83,18 @@ All normal file activations run through a lightweight, zero-WinUI dispatcher (`R
 
 ## Installation
 
-### Option 1: Per-User Windows Installer (`.msi`)
-1. Download `RuleOpen-1.0.0-win-x64.msi` from [GitHub Releases](https://github.com/Paul1708/RuleOpen/releases).
-2. Run the installer — it installs cleanly into `%LocalAppData%\Programs\RuleOpen\` with a Start Menu shortcut, supports in-place upgrades, and prompts on completion to launch RuleOpen.
+### Option 1: Microsoft Store (Recommended)
+1. Install directly from the **[Microsoft Store](https://apps.microsoft.com/detail/9NPTZJ83X1W9)** (`Product ID: 9NPTZJ83X1W9`).
+2. Automatically registers the native Windows 11 right-click menu (`IExplorerCommand`), 75+ common file types in Windows Default Apps (`uap3:FileTypeAssociation`), and dynamic per-folder Explorer icons (`desktop10:IconHandler`) with automatic Store updates and zero Developer Mode setup.
+
+### Option 2: Per-User Windows Installer (`.msi`)
+1. Download `RuleOpen-1.0.1-win-x64.msi` from [GitHub Releases](https://github.com/Paul1708/RuleOpen/releases).
+2. Run the installer — it installs cleanly into `%LocalAppData%\Programs\RuleOpen\` with a Start Menu shortcut, supports in-place upgrades, allows dynamically registering arbitrary custom file extensions in Windows Default Apps, and prompts on completion to launch RuleOpen.
 3. Uninstalling from Windows **Settings → Apps → Installed apps** asks whether to delete `%LocalAppData%\RuleOpen\` user data, cleans up RuleOpen's per-user capabilities and Explorer integrations, and offers to open Windows Default Apps if any extensions are still assigned to RuleOpen.
 
-### Option 2: Portable Archive (`.zip`)
-1. Download `RuleOpen-1.0.0-win-x64-portable.zip` and extract it to any user-writable folder.
+### Option 3: Portable Archive (`.zip`)
+1. Download `RuleOpen-1.0.1-win-x64-portable.zip` from [GitHub Releases](https://github.com/Paul1708/RuleOpen/releases) and extract it to any user-writable folder.
 2. Run `RuleOpen.Desktop.exe`.
-
-### Option 3: Microsoft Store (Coming Soon)
-- A signed Full MSIX Store release (`PaulBrinkmann.RuleOpen`) is currently pending Microsoft Store review.
-- Once published, installing directly from the Microsoft Store will automatically register the modern Windows 11 right-click menu (`IExplorerCommand`), 70+ common file associations (`uap3:FileTypeAssociation`), and dynamic per-folder Explorer icons (`desktop10:IconHandler`) with zero Developer Mode setup.
 
 ---
 
@@ -158,7 +164,7 @@ dotnet test tests\RuleOpen.Core.Tests\RuleOpen.Core.Tests.csproj -c Release
 dotnet test tests\RuleOpen.Integration.Tests\RuleOpen.Integration.Tests.csproj -c Release -p:Platform=x64
 
 # 5. Build Store MSIX, per-user MSI installer, Sparse MSIX, and portable ZIP
-powershell -ExecutionPolicy Bypass -File scripts\package-release.ps1 -Version "1.0.0"
+powershell -ExecutionPolicy Bypass -File scripts\package-release.ps1 -Version "1.0.1"
 ```
 
 Measured performance figures and hardware environment details are documented in [`docs/benchmarks.md`](docs/benchmarks.md).
